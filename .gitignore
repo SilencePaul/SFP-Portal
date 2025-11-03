@@ -1,0 +1,22 @@
+# Node.js dependencies
+node_modules/
+
+# Environment files
+.env
+
+# Logs
+*.log
+npm-debug.log
+yarn-error.log
+
+# React build output
+web/build
+
+# Docker
+*.env
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
