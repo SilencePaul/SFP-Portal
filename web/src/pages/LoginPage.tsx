@@ -103,9 +103,6 @@ export default function LoginPage() {
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Or <a href="#" className="font-medium text-[#4C51A4] hover:text-[#383C80]">create a new account</a>
-          </p>
         </motion.div>
         
         <motion.div
@@ -199,47 +196,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#FFDF4] dark:bg-gray-900 text-gray-500 dark:text-gray-400">
-                Or sign in with
-              </span>
             </div>
           </div>
-          
-          <div className="grid grid-cols-3 gap-3">
-            <button
-              type="button"
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4C51A4]"
-            >
-              <i className="fa-brands fa-google mr-2"></i>
-              <span>Google</span>
-            </button>
-            
-            <button
-              type="button"
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4C51A4]"
-            >
-              <i className="fa-brands fa-facebook-f mr-2"></i>
-              <span>Facebook</span>
-            </button>
-            
-            <button
-              type="button"
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4C51A4]"
-            >
-              <i className="fa-brands fa-twitter mr-2"></i>
-              <span>Twitter</span>
-            </button>
-          </div>
         </motion.div>
-        
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
-            <a href="#" className="font-medium text-[#4C51A4] hover:text-[#383C80]">
-              Sign up now
-            </a>
-          </p>
-        </div>
         
         {/* Mock login credentials info */}
         <div className="mt-8 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
