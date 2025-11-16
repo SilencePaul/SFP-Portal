@@ -6,19 +6,19 @@ import { getAnimalById } from '@/data/mockAnimals';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-// 定义合同表单验证模式
+// Define contract form validation schema
 const contractFormSchema = z.object({
-  firstName: z.string().min(2, "名字是必需的").max(100),
-  lastName: z.string().min(2, "姓氏是必需的").max(100),
-  address: z.string().min(5, "地址是必需的").max(200),
-  city: z.string().min(2, "城市是必需的").max(100),
-  province: z.string().min(2, "省份是必需的").max(100),
-  postalCode: z.string().min(5, "邮政编码是必需的").max(20),
-  phone: z.string().min(10, "电话号码是必需的").max(20),
-  email: z.string().email("无效的电子邮件地址"),
-  confirmEmail: z.string().email("无效的电子邮件地址"),
-  acceptTerms: z.boolean().refine(val => val === true, "您必须接受条款和条件"),
-  signature: z.string().min(1, "请提供您的签名"),
+  firstName: z.string().min(2, "First name is required").max(100),
+  lastName: z.string().min(2, "Last name is required").max(100),
+  address: z.string().min(5, "Address is required").max(200),
+  city: z.string().min(2, "City is required").max(100),
+  province: z.string().min(2, "Province is required").max(100),
+  postalCode: z.string().min(5, "Postal code is required").max(20),
+  phone: z.string().min(10, "Phone number is required").max(20),
+  email: z.string().email("Invalid email address"),
+  confirmEmail: z.string().email("Invalid email address"),
+  acceptTerms: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
+  signature: z.string().min(1, "Please provide your signature"),
 });
 
 type ContractFormData = z.infer<typeof contractFormSchema>;
@@ -29,7 +29,7 @@ export default function SignContractPage() {
   const { currentUser } = useContext(AuthContext);
   const animal = getAnimalById(id || '');
   
-  // 表单状态
+  // Form state
   const [formData, setFormData] = useState<ContractFormData>({
     firstName: currentUser?.name.split(' ')[0] || '',
     lastName: currentUser?.name.split(' ')[1] || '',
@@ -50,11 +50,11 @@ export default function SignContractPage() {
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [signatureMethod, setSignatureMethod] = useState<'typed' | 'canvas'>('typed');
   
-  // 画布相关引用和状态
+  // Canvas related refs and state
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
-  // 初始化画布
+  // Initialize canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,7 +62,7 @@ export default function SignContractPage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // 设置画布样式
+    // Set canvas style
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = '#000000';
@@ -80,15 +80,15 @@ export default function SignContractPage() {
               <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
                 <i className="fa-solid fa-search text-gray-400 text-4xl"></i>
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">未找到动物</h3>
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Animal Not Found</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                我们找不到您要找的动物。它可能已被领养或从我们的系统中移除。
+                We couldn't find the animal you are looking for. It may have been adopted or removed from our system.
               </p>
               <a 
                 href="/adoptables" 
                 className="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                浏览可领养动物
+                Browse Adoptable Animals
               </a>
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function SignContractPage() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // 当用户开始输入时清除错误
+    // When user starts typing, clear error
     if (errors[name as keyof ContractFormData]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -113,19 +113,19 @@ export default function SignContractPage() {
     const { name, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: checked }));
     
-    // 当用户切换复选框时清除错误
+    // When user toggles checkbox, clear error
     if (errors[name as keyof ContractFormData]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
   
-  // 文件上传处理
+  // File upload handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setEmrProof(file);
       
-      // 创建文件预览
+      // Create file preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setProofPreview(reader.result as string);
@@ -134,7 +134,7 @@ export default function SignContractPage() {
     }
   };
   
-  // 画布绘制处理
+  // Canvas drawing handler
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -169,14 +169,14 @@ export default function SignContractPage() {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.closePath();
-        // 将画布内容转换为数据URL存储到签名字段
+        // Convert canvas content to data URL and store in signature field
         const dataUrl = canvas.toDataURL();
         setFormData(prev => ({ ...prev, signature: dataUrl }));
       }
     }
   };
   
-  // 清除画布
+  // Clear canvas
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -191,21 +191,21 @@ export default function SignContractPage() {
   
   const validateForm = () => {
     try {
-      // 检查电子邮件是否匹配
+      // Check if emails match
       if (formData.email !== formData.confirmEmail) {
-        setErrors(prev => ({ ...prev, confirmEmail: "电子邮件不匹配" }));
+        setErrors(prev => ({ ...prev, confirmEmail: "Emails do not match" }));
         return false;
       }
       
-      // 检查是否上传了EMT证明
+      // Check if EMT proof is uploaded
       if (!emrProof) {
-        toast.error('请上传EMT付款截图');
+        toast.error('Please upload EMT payment screenshot');
         return false;
       }
       
-      // 检查是否提供了签名
+      // Check if signature is provided
       if (!formData.signature) {
-        toast.error('请提供您的签名');
+        toast.error('Please provide your signature');
         return false;
       }
       
@@ -228,7 +228,7 @@ export default function SignContractPage() {
     e.preventDefault();
     
     if (!validateForm()) {
-      // 滚动到第一个错误
+      // Scroll to first error
       const firstErrorField = document.querySelector('[aria-invalid="true"]');
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -239,16 +239,16 @@ export default function SignContractPage() {
     setIsSubmitting(true);
     
     try {
-      // 模拟API调用
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      toast.success(`已成功提交${animal.name}(${animal.uniqueId})的领养合同！`, {
-        description: "一旦我们的团队审核通过，动物状态将更新为已领养。",
+      toast.success(`Successfully submitted adoption contract for ${animal.name} (${animal.uniqueId})!`, {
+        description: "Once our team approves, the animal's status will be updated to Adopted.",
         duration: 5000,
         onAutoClose: () => navigate(`/animal/${animal.id}`)
       });
     } catch (error) {
-      toast.error('提交合同失败。请稍后再试。');
+      toast.error('Failed to submit contract. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -263,16 +263,16 @@ export default function SignContractPage() {
           transition={{ duration: 0.5 }}
           className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden max-w-4xl mx-auto"
         >
-          {/* 标题 */}
+          {/* Title */}
           <div className="bg-primary text-white p-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">签署领养合同</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Sign Adoption Contract</h1>
             <div className="flex items-center text-white/90">
-              <span className="mr-2">动物: {animal.name} ({animal.uniqueId})</span>
-              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">领养费用: ¥{animal.adoptionFee}</span>
+              <span className="mr-2">Animal: {animal.name} ({animal.uniqueId})</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Adoption Fee: ¥{animal.adoptionFee}</span>
             </div>
           </div>
           
-          {/* 宠物信息卡 */}
+          {/* Pet Info Card */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-800">
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0">
@@ -289,15 +289,15 @@ export default function SignContractPage() {
             </div>
           </div>
           
-          {/* 表单 */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* 个人信息 */}
+            {/* Personal Info */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white">个人信息</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white">Personal Information</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">名字</label>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
                   <input
                     type="text"
                     id="firstName"
@@ -318,7 +318,7 @@ export default function SignContractPage() {
                 </div>
                 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">姓氏</label>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
                   <input
                     type="text"
                     id="lastName"
@@ -339,7 +339,7 @@ export default function SignContractPage() {
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">电话号码</label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
                   <input
                     type="tel"
                     id="phone"
@@ -360,7 +360,7 @@ export default function SignContractPage() {
                 </div>
                 
                 <div>
-                  <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮政编码</label>
+                  <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Postal Code</label>
                   <input
                     type="text"
                     id="postalCode"
@@ -382,7 +382,7 @@ export default function SignContractPage() {
               </div>
               
               <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">街道地址</label>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Street Address</label>
                 <input
                   type="text"
                   id="address"
@@ -404,7 +404,7 @@ export default function SignContractPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">城市</label>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
                   <input
                     type="text"
                     id="city"
@@ -425,7 +425,7 @@ export default function SignContractPage() {
                 </div>
                 
                 <div>
-                  <label htmlFor="province" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">省份</label>
+                  <label htmlFor="province" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Province</label>
                   <input
                     type="text"
                     id="province"
@@ -448,7 +448,7 @@ export default function SignContractPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">电子邮箱</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                   <input
                     type="email"
                     id="email"
@@ -469,7 +469,7 @@ export default function SignContractPage() {
                 </div>
                 
                 <div>
-                  <label htmlFor="confirmEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">确认电子邮箱</label>
+                  <label htmlFor="confirmEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Email</label>
                   <input
                     type="email"
                     id="confirmEmail"
@@ -491,15 +491,15 @@ export default function SignContractPage() {
               </div>
             </div>
             
-            {/* 领养详情 */}
+            {/* Adoption Details */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white">领养详情</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white">Adoption Details</h3>
               
               <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">领养动物</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Adopted Animal</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">姓名</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
                     <p className="font-medium text-gray-800 dark:text-white">{animal.name}</p>
                   </div>
                   <div>
@@ -507,28 +507,28 @@ export default function SignContractPage() {
                     <p className="font-medium text-gray-800 dark:text-white">{animal.uniqueId}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">领养费用</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Adoption Fee</p>
                     <p className="font-medium text-gray-800 dark:text-white">¥{animal.adoptionFee}</p>
                   </div>
                 </div>
               </div>
               
-              {/* EMR付款证明 */}
+              {/* EMT Payment Proof */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  上传EMT付款截图（领养费用付款至acct@savefurpets.com的证明）
+                  Upload EMT payment screenshot (proof of payment to acct@savefurpets.com)
                 </label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg">
                   <div className="space-y-1 text-center">
                     <i className="fa-solid fa-cloud-arrow-up text-gray-400 text-3xl"></i>
                     <div className="flex text-sm text-gray-600 dark:text-gray-400">
                       <label htmlFor="file-upload" className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-[#4C51A4] hover:text-[#383C80]">
-                        <span>上传文件</span>
+                        <span>Upload File</span>
                         <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} />
                       </label>
-                      <p className="pl-1">或拖放文件</p>
+                      <p className="pl-1">or drag and drop</p>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, PDF 最大10MB</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, PDF up to 10MB</p>
                   </div>
                 </div>
                 {proofPreview && (
@@ -568,10 +568,10 @@ export default function SignContractPage() {
                 )}
               </div>
               
-              {/* 签名方式选择 */}
+              {/* Signature Method Selection */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  签名方式
+                  Signature Method
                 </label>
                 <div className="flex space-x-4">
                   <label className="inline-flex items-center">
@@ -583,7 +583,7 @@ export default function SignContractPage() {
                       onChange={() => setSignatureMethod('typed')}
                       className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-700 rounded"
                     />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">输入签名</span>
+                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Typed Signature</span>
                   </label>
                   <label className="inline-flex items-center">
                     <input
@@ -594,15 +594,15 @@ export default function SignContractPage() {
                       onChange={() => setSignatureMethod('canvas')}
                       className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-700 rounded"
                     />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">手写签名</span>
+                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Handwritten Signature</span>
                   </label>
                 </div>
               </div>
               
-              {/* 签名区域 */}
+              {/* Signature Area */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  您的签名
+                  Your Signature
                 </label>
                 
                 {signatureMethod === 'typed' ? (
@@ -617,7 +617,7 @@ export default function SignContractPage() {
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
                         : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800'
                     } text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all`}
-                    placeholder="请输入您的全名作为签名"
+                    placeholder="Please enter your full name as signature"
                     aria-invalid={!!errors.signature}
                     aria-describedby={errors.signature ? "signature-error" : undefined}
                   />
@@ -643,7 +643,7 @@ export default function SignContractPage() {
                       onClick={clearCanvas}
                       className="mt-2 self-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 text-sm"
                     >
-                      <i className="fa-solid fa-eraser mr-1"></i> 清除签名
+                      <i className="fa-solid fa-eraser mr-1"></i> Clear Signature
                     </button>
                   </div>
                 )}
@@ -652,10 +652,10 @@ export default function SignContractPage() {
                 )}
               </div>
               
-              {/* 日期 */}
+              {/* Date */}
               <div>
                 <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  日期
+                  Date
                 </label>
                 <input
                   type="date"
@@ -667,7 +667,7 @@ export default function SignContractPage() {
               </div>
             </div>
             
-            {/* 条款和条件 */}
+            {/* Terms and Conditions */}
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="flex items-center h-5">
@@ -683,7 +683,7 @@ export default function SignContractPage() {
                 </div>
                 <div className="ml-3 text-sm">
                   <label htmlFor="acceptTerms" className="font-medium text-gray-700 dark:text-gray-300">
-                    我接受领养条款和条件
+                    I accept the adoption terms and conditions
                   </label>
                   {errors.acceptTerms && (
                     <p className="mt-1 text-sm text-red-500">{errors.acceptTerms}</p>
@@ -691,25 +691,25 @@ export default function SignContractPage() {
                 </div>
               </div>
               
-              {/* 合同内容 */}
+              {/* Contract Content */}
               <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 max-h-60 overflow-y-auto">
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">领养协议</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Adoption Agreement</h4>
                 <p className="mb-2">
-                  签署本领养协议，即表示领养人同意以下条款和条件：
+                  By signing this adoption agreement, the adopter agrees to the following terms and conditions:
                 </p>
                 <ol className="list-decimal pl-5 space-y-2">
-                  <li>我同意为动物提供适当的照顾，包括但不限于：定期兽医护理、适当的食物和水、住所、运动和陪伴。</li>
-                  <li>我同意将动物作为室内宠物饲养，并提供安全的环境。</li>
-                  <li>我同意如果动物走失、生病，或动物的健康或行为有任何重大变化，立即通知Save Fur Pets。</li>
-                  <li>我理解领养费用不予退还。</li>
-                  <li>我同意如果我无法继续照顾动物，将其归还给Save Fur Pets，而不是将其送人或带到收容所。</li>
-                  <li>我确认本领养申请中提供的所有信息均真实准确。</li>
-                  <li>我理解Save Fur Pets保留进行后续访问以确保动物福祉的权利。</li>
+                  <li>I agree to provide proper care for the animal, including but not limited to: regular veterinary care, appropriate food and water, shelter, exercise, and companionship.</li>
+                  <li>I agree to keep the animal as an indoor pet and provide a safe environment.</li>
+                  <li>I agree to notify Save Fur Pets immediately if the animal is lost, becomes ill, or if there are any significant changes in the animal's health or behavior.</li>
+                  <li>I understand the adoption fee is non-refundable.</li>
+                  <li>I agree to return the animal to Save Fur Pets if I am unable to continue caring for it, rather than rehoming or surrendering it to a shelter.</li>
+                  <li>I confirm that all information provided in this adoption application is true and accurate.</li>
+                  <li>I understand that Save Fur Pets reserves the right to conduct follow-up visits to ensure the animal's welfare.</li>
                 </ol>
               </div>
             </div>
             
-            {/* 提交按钮 */}
+            {/* Submit Button */}
             <div className="pt-4">
                <button
                 type="submit"
@@ -721,12 +721,12 @@ export default function SignContractPage() {
                 {isSubmitting ? (
                   <>
                     <i className="fa-solid fa-spinner fa-spin mr-2"></i>
-                    提交合同中...
+                    Submitting contract...
                   </>
                 ) : (
                   <>
                     <i className="fa-solid fa-signature mr-2"></i>
-                    签名并提交合同
+                    Sign and Submit Contract
                   </>
                 )}
               </button>
