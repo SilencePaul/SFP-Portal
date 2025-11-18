@@ -72,7 +72,7 @@ export const getAvailableAnimals = async (req, res, next) => {
 export const getAdoptedAnimals = async (req, res, next) => {
   try {
     const adoptedAnimals = await Animal.findAll({
-      where: { status: "Adopted" },
+      where: { status: "adopted" },
       include: [{ model: Volunteer }],
     });
 
