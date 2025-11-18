@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator";
 import Application from "../models/Application.js";
 import Animal from "../models/Animal.js";
+import { sendApplicationConfirmationEmail, sendApplicationStatusUpdateEmail } from "../services/emailService.js";
 
 export const getAllApplications = async (req, res, next) => {
   try {
@@ -99,6 +100,18 @@ export const createApplication = async (req, res, next) => {
       }
     );
 
+    // Send confirmation email (non-blocking)
+    sendApplicationConfirmationEmail({
+      email: applicationData.email,
+      full_name: applicationData.full_name,
+      animal_id: animal_id,
+      animal_name: animal.name,
+      application_id: newApplication.id,
+    }).catch(err => {
+      console.error('Failed to send confirmation email:', err);
+      // Don't fail the request if email fails
+    });
+
     res.status(201).json(applicationWithDetails);
   } catch (error) {
     next(error);
@@ -118,6 +131,8 @@ export const updateApplicationStatus = async (req, res, next) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
+    const oldStatus = application.status;
+
     // Update status
     await application.update({ status });
 
@@ -130,6 +145,21 @@ export const updateApplicationStatus = async (req, res, next) => {
         },
       ],
     });
+
+    // Send status update email if status changed (non-blocking)
+    if (oldStatus !== status) {
+      const animal = updatedApplication.Animal;
+      sendApplicationStatusUpdateEmail({
+        email: application.email,
+        full_name: application.full_name,
+        animal_id: application.animal_id,
+        animal_name: animal?.name || 'Animal',
+        application_id: application.id,
+      }, status).catch(err => {
+        console.error('Failed to send status update email:', err);
+        // Don't fail the request if email fails
+      });
+    }
 
     res.status(200).json(updatedApplication);
   } catch (error) {
