@@ -4,6 +4,14 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "@/contexts/authContext";
 import { apiGet } from "@/lib/api";
 
+// Helper function to format animal status to camel case
+const formatStatus = (status: string) => {
+  return status
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 export default function Dashboard() {
   const { currentUser } = useContext(AuthContext);
   const [recentlyAdded, setRecentlyAdded] = useState([]);
@@ -525,7 +533,7 @@ export default function Dashboard() {
                                 : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                             }`}
                           >
-                            {animal.status}
+                            {formatStatus(animal.status)}
                           </span>
                         </div>
                         <div className="flex items-center mt-2 text-sm text-gray-600 dark:text-gray-400">

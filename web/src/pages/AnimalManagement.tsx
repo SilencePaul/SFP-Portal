@@ -5,6 +5,14 @@ import { AuthContext } from "@/contexts/authContext";
 import { calculateDaysInSFP } from "@/data/mockAnimals";
 import { toast } from "sonner";
 
+// Helper function to format status in camel case
+const formatStatus = (status: string) => {
+  return status
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 export default function AnimalManagement() {
   const { currentUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("all");
@@ -370,7 +378,7 @@ export default function AnimalManagement() {
                               : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                           }`}
                         >
-                          {animal.status}
+                          {formatStatus(animal.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
