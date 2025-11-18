@@ -20,7 +20,7 @@ const AnimalDetail: React.FC<AnimalDetailProps> = ({ animal: propAnimal }) => {
   const navigate = useNavigate();
 
   // Check if user is admin
-  const isAdmin = authContext?.user?.role === "admin";
+  const isAdmin = authContext?.currentUser?.role.includes("admin");
 
   useEffect(() => {
     if (!animal && id) {
@@ -79,7 +79,7 @@ const AnimalDetail: React.FC<AnimalDetailProps> = ({ animal: propAnimal }) => {
   const daysInSFP = calculateDaysInSFP(animal.intakeDate);
 
   const handleApply = () => {
-    navigate(`/apply/${animal.id}`);
+    navigate(`/apply/${animal.uniqueId}`);
   };
 
   const handleShare = () => {

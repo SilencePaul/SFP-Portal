@@ -313,7 +313,7 @@ export default function AnimalManagement() {
                 ) : (
                   filteredAnimals.map((animal) => (
                     <tr
-                      key={animal.id}
+                      key={animal.uniqueId}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -376,14 +376,14 @@ export default function AnimalManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <Link
-                            to={`/animal/${animal.id}`}
+                            to={`/animal/${animal.uniqueId}`}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
                           >
                             <i className="fa-solid fa-eye"></i>
                           </Link>
                           {/* Edit allowed for admin; foster can edit only if not published */}
                           <Link
-                            to={`/animals/edit/${animal.id}`}
+                            to={`/animals/edit/${animal.uniqueId}`}
                             className={`${
                               !isAdmin && animal.status === "published"
                                 ? "opacity-50 cursor-not-allowed"
@@ -396,7 +396,7 @@ export default function AnimalManagement() {
                           {/* Foster can mark their own animals as ready for adoption when in fostering status */}
                           {animal.status === "fostering" && !isAdmin && (
                             <button
-                              onClick={() => handleMarkAsReady(animal.id)}
+                              onClick={() => handleMarkAsReady(animal.uniqueId)}
                               className="text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300"
                               title="Mark as Ready for Adoption"
                             >
@@ -408,7 +408,7 @@ export default function AnimalManagement() {
                           {animal.status === "ready for adoption" &&
                             isAdmin && (
                               <button
-                                onClick={() => handlePublish(animal.id)}
+                                onClick={() => handlePublish(animal.uniqueId)}
                                 className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
                                 title="Publish to Public Site"
                               >
@@ -419,7 +419,7 @@ export default function AnimalManagement() {
                           {/* Admin can unpublish animals */}
                           {animal.status === "published" && isAdmin && (
                             <button
-                              onClick={() => handleUnpublish(animal.id)}
+                              onClick={() => handleUnpublish(animal.uniqueId)}
                               className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300"
                               title="Unpublish from Public Site"
                             >
@@ -431,7 +431,7 @@ export default function AnimalManagement() {
                           {animal.status === "ready for adoption" &&
                             isAdmin && (
                               <button
-                                onClick={() => handleReview(animal.id)}
+                                onClick={() => handleReview(animal.uniqueId)}
                                 className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
                                 title="Review Animal"
                               >
@@ -442,7 +442,7 @@ export default function AnimalManagement() {
                           {/* Archive button for all animals not already archived (admin only) */}
                           {animal.status !== "archived" && isAdmin && (
                             <button
-                              onClick={() => handleArchive(animal.id)}
+                              onClick={() => handleArchive(animal.uniqueId)}
                               className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                               title="Archive animal"
                             >

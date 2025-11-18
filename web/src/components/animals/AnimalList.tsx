@@ -507,7 +507,7 @@ const AnimalList: React.FC<AnimalListProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAnimals.map((animal) => (
             <AnimalCard
-              key={animal.id}
+              key={animal.uniqueId}
               animal={animal}
               showDaysInSFP={!showAdopted}
               showAdoptionDate={showAdopted}
@@ -522,7 +522,7 @@ const AnimalList: React.FC<AnimalListProps> = ({
         <div className="space-y-4">
           {filteredAnimals.map((animal) => (
             <div
-              key={animal.id}
+              key={animal.uniqueId}
               className="bg-white dark:bg-gray-900 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row"
             >
               <div className="w-full sm:w-1/4 h-40 sm:h-auto overflow-hidden">
@@ -613,7 +613,7 @@ const AnimalList: React.FC<AnimalListProps> = ({
 
                 <div className="mt-auto pt-2 flex justify-end">
                   <a
-                    href={`/animal/${animal.id}`}
+                    href={`/animal/${animal.uniqueId}`}
                     className="inline-block bg-[#4C51A4] hover:bg-[#383C80] text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     {showAdopted ? "View Story" : "View Details"}

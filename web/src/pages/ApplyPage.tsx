@@ -237,7 +237,7 @@ export default function ApplyPage() {
       await response.json();
       toast.success(`Your application to adopt ${animal.name} (${animal.uniqueId}) has been submitted successfully!`);
       setTimeout(() => {
-        navigate(`/animal/${animal.id}`);
+        navigate(`/animal/${animal.uniqueId}`);
       }, 3000);
     } catch (error) {
       console.error(error);

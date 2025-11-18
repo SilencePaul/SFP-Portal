@@ -128,11 +128,11 @@ export default function AssignInterviewer() {
     try {
       setAssigning(true);
       const updated = await apiPatch(
-        `/api/animals/${selectedAnimal.id}/interviewer`,
+        `/api/animals/${selectedAnimal.unique_id}/interviewer`,
         { interviewer_id: interviewer.id }
       );
       setSelectedAnimal(updated);
-      setAnimals(animals.map((a) => (a.id === updated.id ? updated : a)));
+      setAnimals(animals.map((a) => (a.unique_id === updated.unique_id ? updated : a)));
       toast.success(
         `${interviewer.full_name} has been assigned to ${selectedAnimal.name}`
       );
@@ -150,11 +150,11 @@ export default function AssignInterviewer() {
     try {
       setAssigning(true);
       const updated = await apiPatch(
-        `/api/animals/${selectedAnimal.id}/interviewer`,
+        `/api/animals/${selectedAnimal.unique_id}/interviewer`,
         { interviewer_id: null }
       );
       setSelectedAnimal(updated);
-      setAnimals(animals.map((a) => (a.id === updated.id ? updated : a)));
+      setAnimals(animals.map((a) => (a.unique_id === updated.unique_id ? updated : a)));
       toast.success(`Interviewer has been removed from ${selectedAnimal.name}`);
     } catch (error) {
       console.error("Error removing interviewer:", error);
@@ -282,10 +282,10 @@ export default function AssignInterviewer() {
                   {filteredAnimals.length > 0 ? (
                     filteredAnimals.map((animal) => (
                       <motion.div
-                        key={animal.id}
+                        key={animal.unique_id}
                         whileHover={{ scale: 1.01 }}
                         className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                          selectedAnimal?.id === animal.id
+                          selectedAnimal?.unique_id === animal.unique_id
                             ? "border-[#4C51A4] bg-[#4C51A4]/5 dark:bg-[#4C51A4]/10"
                             : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                         }`}

@@ -245,7 +245,7 @@ export default function SignContractPage() {
       toast.success(`Successfully submitted adoption contract for ${animal.name} (${animal.uniqueId})!`, {
         description: "Once our team approves, the animal's status will be updated to Adopted.",
         duration: 5001,
-        onAutoClose: () => navigate(`/animal/${animal.id}`)
+        onAutoClose: () => navigate(`/animal/${animal.uniqueId}`)
       });
     } catch (error) {
       toast.error('Failed to submit contract. Please try again later.');
