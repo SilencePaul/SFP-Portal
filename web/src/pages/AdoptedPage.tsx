@@ -8,6 +8,22 @@ export default function AdoptedPage() {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
+
+  // Convert activeTab to filter format
+  const getFiltersFromTab = () => {
+    switch (activeTab) {
+      case 'dogs':
+        return { species: 'dog' };
+      case 'cats':
+        return { species: 'cat' };
+      case 'recent':
+        // Recent adoptions will show all animals (sorting handles this)
+        return {};
+      case 'all':
+      default:
+        return {};
+    }
+  };
   
   return (
      <div className="min-h-screen py-12 bg-white dark:bg-gray-900">
@@ -58,6 +74,7 @@ export default function AdoptedPage() {
         >
           <AnimalList 
             showAdopted={true}
+            initialFilters={getFiltersFromTab()}
           />
         </motion.div>
       </div>

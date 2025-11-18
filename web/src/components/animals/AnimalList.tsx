@@ -122,7 +122,9 @@ const AnimalList: React.FC<AnimalListProps> = ({
     // Apply filters
     let result = animals;
     if (filters.species) {
-      result = result.filter((animal) => animal.species === filters.species);
+      result = result.filter((animal) => 
+        animal.species.toLowerCase() === filters.species.toLowerCase()
+      );
     }
     if (filters.age) {
       result = result.filter((animal) => animal.age === filters.age);
@@ -168,6 +170,24 @@ const AnimalList: React.FC<AnimalListProps> = ({
             animal.adoptionStory.toLowerCase().includes(term))
       );
     }
+    
+    // Apply sorting
+    if (showAdopted) {
+      // For adopted animals: Sort by adoption date (newest first)
+      result = result.sort((a, b) => {
+        const dateA = new Date(a.adoptionDate || 0).getTime();
+        const dateB = new Date(b.adoptionDate || 0).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+    } else {
+      // For available animals: Sort by days in SFP (longest first)
+      result = result.sort((a, b) => {
+        const daysA = calculateDaysInSFP(a.intakeDate);
+        const daysB = calculateDaysInSFP(b.intakeDate);
+        return daysB - daysA; // Descending order (longest waiting first)
+      });
+    }
+    
     setFilteredAnimals(result);
     if (onFilterChange) {
       onFilterChange(filters);
