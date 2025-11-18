@@ -4,45 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '@/contexts/authContext';
 import { toast } from 'sonner';
 
-// Mock user roles for demonstration
-const mockUsers = [
-  {
-    id: '1',
-    email: 'adopter@example.com',
-    password: 'password123',
-    name: 'Adopter User',
-    role: ['Adopter']
-  },
-  {
-    id: '2',
-    email: 'foster@example.com',
-    password: 'password123',
-    name: 'Foster User',
-    role: ['Foster']
-  },
-  {
-    id: '3',
-    email: 'superfoster@example.com',
-    password: 'password123',
-    name: 'Super Foster User',
-    role: ['Foster', 'Super Foster']
-  },
-  {
-    id: '4',
-    email: 'interviewer@example.com',
-    password: 'password123',
-    name: 'Interviewer User',
-    role: ['Interviewer']
-  },
-  {
-    id: '5',
-    email: 'admin@example.com',
-    password: 'password123',
-    name: 'Admin User',
-    role: ['Admin']
-  }
-];
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -213,9 +174,7 @@ export default function LoginPage() {
             Mock Login Credentials:
           </h3>
           <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-2">
-           <li><strong>Adopter:</strong> adopter@example.com / password123</li>
            <li><strong>Volunteer (Foster):</strong> foster@example.com / password123</li>
-           <li><strong>Volunteer (Super Foster):</strong> superfoster@example.com / password123</li>
            <li><strong>Volunteer (Interviewer):</strong> interviewer@example.com / password123</li>
            <li><strong>Admin:</strong> admin@example.com / password123</li>
           </ul>
