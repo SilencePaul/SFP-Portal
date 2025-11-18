@@ -3,7 +3,6 @@ import {
   getAllApplications,
   getApplicationById,
   getApplicationsByAnimal,
-  getApplicationsByApplicant,
   createApplication,
   updateApplicationStatus,
   deleteApplication,
@@ -18,11 +17,8 @@ router.post(
   "/",
   [
     body("animal_id").notEmpty().withMessage("Animal ID is required"),
-    body("applicant_id")
-      .isInt({ min: 1 })
-      .withMessage("Valid applicant ID is required"),
-    body("answers").isObject().withMessage("Answers must be an object"),
-    body("status").optional().isString().withMessage("Status must be a string"),
+    body("full_name").notEmpty().withMessage("Full name is required"),
+    body("email").isEmail().withMessage("Valid email is required"),
   ],
   createApplication
 );
@@ -31,34 +27,27 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator"),
+  roleMiddleware("admin", "interviewer"),
   getAllApplications
 );
 router.get(
   "/:id",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator", "Applicant"),
+  roleMiddleware("admin", "interviewer"),
   [param("id").isInt().withMessage("Valid application ID is required")],
   getApplicationById
 );
 router.get(
   "/animal/:animalId",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator", "Foster"),
+  roleMiddleware("admin", "interviewer", "foster"),
   [param("animalId").notEmpty().withMessage("Animal ID is required")],
   getApplicationsByAnimal
-);
-router.get(
-  "/applicant/:applicantId",
-  authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator", "Applicant"),
-  [param("applicantId").isInt().withMessage("Valid applicant ID is required")],
-  getApplicationsByApplicant
 );
 router.patch(
   "/:id/status",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator"),
+  roleMiddleware("admin", "interviewer"),
   [
     param("id").isInt().withMessage("Valid application ID is required"),
     body("status").notEmpty().withMessage("Status is required"),
@@ -69,7 +58,7 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("Coordinator"),
+  roleMiddleware("admin"),
   [param("id").isInt().withMessage("Valid application ID is required")],
   deleteApplication
 );

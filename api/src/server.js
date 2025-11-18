@@ -32,9 +32,6 @@ app.use(express.urlencoded({ extended: true }));
 // Metrics middleware: simple instrumentation for Prometheus
 app.use(metricsMiddleware);
 
-// In-memory store for mock mode
-const applicants = [];
-
 // Helpers
 const generatePassword = () => {
   const adjectives = [

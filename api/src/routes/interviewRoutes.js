@@ -3,37 +3,37 @@ import {
   getAllInterviews,
   getInterviewById,
   getInterviewsByApplication,
-  getInterviewsByVolunteer,
-  scheduleInterview,
-  updateInterviewResult,
+  createInterview,
+  updateInterview,
   deleteInterview,
 } from "../controller/interviewController.js";
 import { authMiddleware, roleMiddleware } from "../middleware/auth.js";
 import { body, param } from "express-validator";
-import Interview from "../models/Interview.js";
-import Application from "../models/Application.js";
-import Volunteer from "../models/Volunteer.js";
 
 const router = express.Router();
 
-// Protected routes (all interview routes require authentication)
+// Get all interviews (admin sees all, interviewer sees assigned)
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator"),
+  roleMiddleware("admin", "interviewer"),
   getAllInterviews
 );
+
+// Get interview by ID (admin sees all, interviewer sees assigned only)
 router.get(
   "/:id",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator", "Applicant"),
+  roleMiddleware("admin", "interviewer"),
   [param("id").isInt().withMessage("Valid interview ID is required")],
   getInterviewById
 );
+
+// Get interviews by application ID (admin only)
 router.get(
   "/application/:applicationId",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator", "Applicant"),
+  roleMiddleware("admin"),
   [
     param("applicationId")
       .isInt()
@@ -41,92 +41,55 @@ router.get(
   ],
   getInterviewsByApplication
 );
-router.get(
-  "/volunteer/:volunteerId",
-  authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator"),
-  [param("volunteerId").isInt().withMessage("Valid volunteer ID is required")],
-  getInterviewsByVolunteer
-);
 
+// Create interview (admin only) - requires application_id and volunteer_id
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator"),
+  roleMiddleware("admin"),
   [
     body("application_id")
       .isInt()
       .withMessage("Valid application ID is required"),
-    body("volunteer_id").isInt().withMessage("Valid volunteer ID is required"),
-    body("applicant_id").isInt().withMessage("Valid applicant ID is required"),
+    body("volunteer_id")
+      .isInt()
+      .withMessage("Valid interviewer (volunteer) ID is required"),
     body("interview_time")
+      .optional()
       .isISO8601()
-      .withMessage("Valid interview time is required"),
+      .withMessage("Interview time must be a valid ISO8601 date"),
   ],
-  scheduleInterview
+  createInterview
 );
 
+// Update interview (admin can update all fields, interviewer can set time once & result)
 router.patch(
-  "/:id/result",
+  "/:id",
   authMiddleware,
-  roleMiddleware("Adoption Interviewer"),
+  roleMiddleware("admin", "interviewer"),
   [
     param("id").isInt().withMessage("Valid interview ID is required"),
+    body("interview_time")
+      .optional()
+      .isISO8601()
+      .withMessage("Interview time must be a valid ISO8601 date"),
     body("interview_result")
-      .notEmpty()
-      .withMessage("Interview result is required"),
+      .optional()
+      .isString()
+      .withMessage("Interview result must be a string"),
+    body("final_decision")
+      .optional()
+      .isIn(["pending", "approved", "rejected"])
+      .withMessage("Final decision must be pending, approved, or rejected"),
   ],
-  updateInterviewResult
+  updateInterview
 );
 
-router.patch(
-  "/:id/time",
-  authMiddleware,
-  roleMiddleware("Adoption Interviewer", "Coordinator"),
-  [
-    param("id").isInt().withMessage("Valid interview ID is required"),
-    body("interview_time")
-      .isISO8601()
-      .withMessage("Valid interview time is required"),
-  ],
-  // This is a new route, we need to implement the controller method
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { interview_time } = req.body;
-
-      // Find interview in database
-      const interview = await Interview.findByPk(id);
-
-      if (!interview) {
-        return res.status(404).json({ message: "Interview not found" });
-      }
-
-      // Update interview time
-      await interview.update({ interview_time });
-
-      // Return updated interview with details
-      const updatedInterview = await Interview.findByPk(id, {
-        include: [
-          { model: Application, attributes: ["id", "status"] },
-          {
-            model: Volunteer,
-            attributes: ["id", "first_name", "last_name", "email"],
-          },
-        ],
-      });
-
-      res.status(200).json(updatedInterview);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
+// Delete interview (admin only)
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("Coordinator"),
+  roleMiddleware("admin"),
   [param("id").isInt().withMessage("Valid interview ID is required")],
   deleteInterview
 );

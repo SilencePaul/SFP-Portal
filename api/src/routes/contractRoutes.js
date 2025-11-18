@@ -2,10 +2,9 @@ import express from "express";
 import {
   getAllContracts,
   getContractById,
-  getContractsByApplicant,
   getContractsByAnimal,
   createContract,
-  updateContractSignature,
+  updateContract,
   deleteContract,
 } from "../controller/contractController.js";
 import { authMiddleware, roleMiddleware } from "../middleware/auth.js";
@@ -13,37 +12,13 @@ import { body, param } from "express-validator";
 
 const router = express.Router();
 
-// Protected routes (all contract routes require authentication)
-router.get("/", authMiddleware, roleMiddleware("Coordinator"), getAllContracts);
-router.get(
-  "/:id",
-  authMiddleware,
-  roleMiddleware("Coordinator", "Applicant"),
-  [param("id").isInt().withMessage("Valid contract ID is required")],
-  getContractById
-);
-router.get(
-  "/applicant/:applicantId",
-  authMiddleware,
-  roleMiddleware("Coordinator", "Applicant"),
-  [param("applicantId").isInt().withMessage("Valid applicant ID is required")],
-  getContractsByApplicant
-);
-router.get(
-  "/animal/:animalId",
-  authMiddleware,
-  roleMiddleware("Coordinator", "Foster"),
-  [param("animalId").notEmpty().withMessage("Animal ID is required")],
-  getContractsByAnimal
-);
-
+// Create contract - open to everyone (public)
 router.post(
   "/",
-  authMiddleware,
-  roleMiddleware("Coordinator"),
   [
-    body("applicant_id").isInt().withMessage("Valid applicant ID is required"),
-    body("animal_id").notEmpty().withMessage("Valid animal ID is required"),
+    body("application_id")
+      .isInt()
+      .withMessage("Valid application ID is required"),
     body("payment_proof").notEmpty().withMessage("Payment proof is required"),
     body("signature")
       .optional()
@@ -53,21 +28,35 @@ router.post(
   createContract
 );
 
-router.patch(
-  "/:id/signature",
+// Admin-only routes
+router.get("/", authMiddleware, roleMiddleware("admin"), getAllContracts);
+router.get(
+  "/:id",
   authMiddleware,
-  roleMiddleware("Coordinator", "Applicant"),
-  [
-    param("id").isInt().withMessage("Valid contract ID is required"),
-    body("signature").notEmpty().withMessage("Signature is required"),
-  ],
-  updateContractSignature
+  roleMiddleware("admin"),
+  [param("id").isInt().withMessage("Valid contract ID is required")],
+  getContractById
+);
+router.get(
+  "/animal/:animalId",
+  authMiddleware,
+  roleMiddleware("admin"),
+  [param("animalId").notEmpty().withMessage("Animal ID is required")],
+  getContractsByAnimal
+);
+
+router.patch(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin"),
+  [param("id").isInt().withMessage("Valid contract ID is required")],
+  updateContract
 );
 
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("Coordinator"),
+  roleMiddleware("admin"),
   [param("id").isInt().withMessage("Valid contract ID is required")],
   deleteContract
 );

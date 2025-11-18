@@ -40,6 +40,11 @@ const Interview = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    final_decision: {
+      type: DataTypes.ENUM("pending", "approved", "rejected"),
+      allowNull: false,
+      defaultValue: "pending",
+    },
   },
   {
     timestamps: false,

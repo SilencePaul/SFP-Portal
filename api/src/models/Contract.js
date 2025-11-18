@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
 import Animal from "./Animal.js";
+import Application from "./Application.js";
 
 const Contract = sequelize.define(
   "Contract",
@@ -9,6 +10,14 @@ const Contract = sequelize.define(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    application_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "applications",
+        key: "id",
+      },
     },
     animal_id: {
       type: DataTypes.STRING,
@@ -24,7 +33,7 @@ const Contract = sequelize.define(
     },
     signature: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {
@@ -36,6 +45,7 @@ const Contract = sequelize.define(
 );
 
 // Define associations
+Contract.belongsTo(Application, { foreignKey: "application_id" });
 Contract.belongsTo(Animal, { foreignKey: "animal_id", targetKey: "unique_id" });
 
 export default Contract;

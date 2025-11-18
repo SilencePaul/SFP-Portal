@@ -4,7 +4,19 @@ import Volunteer from "../models/Volunteer.js";
 
 export const getAllAnimals = async (req, res, next) => {
   try {
+    const userRole = String(req.user?.role || "").toLowerCase();
+    const userId = req.user?.sub;
+
+    let whereClause = {};
+
+    // Foster can only see animals they created
+    if (userRole === "foster") {
+      whereClause.volunteer_id = Number(userId);
+    }
+    // Admin sees all animals
+
     const animals = await Animal.findAll({
+      where: whereClause,
       include: [{ model: Volunteer }],
     });
     res.status(200).json(animals);
@@ -23,6 +35,19 @@ export const getAnimalById = async (req, res, next) => {
 
     if (!animal) {
       return res.status(404).json({ message: "Animal not found" });
+    }
+
+    // Foster can only view animals they created
+    const userRole = String(req.user?.role || "").toLowerCase();
+    const userId = req.user?.sub;
+
+    if (
+      userRole === "foster" &&
+      Number(animal.volunteer_id) !== Number(userId)
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only view animals you created" });
     }
 
     res.status(200).json(animal);
@@ -67,19 +92,22 @@ export const createAnimal = async (req, res, next) => {
 
     const { volunteer_id, ...animalData } = req.body;
 
-    // If the requester is a foster, ensure they create with their own volunteer id
-    const userRole = String(req.user?.role || "").toUpperCase();
+    const userRole = String(req.user?.role || "").toLowerCase();
     const userId = req.user?.sub;
 
     let creatorVolunteerId = volunteer_id;
-    if (userRole === "FOSTER") {
-      // If a foster tries to create for another volunteer, deny
-      if (volunteer_id && parseInt(volunteer_id) !== Number(userId)) {
-        return res
-          .status(403)
-          .json({ message: "Fosters can only create animals for themselves" });
-      }
+
+    if (userRole === "foster") {
+      // Foster always creates animals for themselves
       creatorVolunteerId = Number(userId);
+    } else if (userRole === "admin") {
+      // Admin can specify volunteer_id or default to themselves
+      creatorVolunteerId = volunteer_id || Number(userId);
+    } else {
+      // Only admin and foster can create animals
+      return res
+        .status(403)
+        .json({ message: "Only admin and foster can create animals" });
     }
 
     // Check if volunteer exists
@@ -135,15 +163,11 @@ export const updateAnimal = async (req, res, next) => {
       return res.status(404).json({ message: "Animal not found" });
     }
 
-    // Authorization: FOSTER can only edit animals they created; COORDINATOR can edit all
-    const userRole = String(req.user?.role || "").toUpperCase();
-    const userId = req.user?.sub;
-    if (userRole === "FOSTER") {
-      if (Number(animal.volunteer_id) !== Number(userId)) {
-        return res
-          .status(403)
-          .json({ message: "Fosters can only edit their own animals" });
-      }
+    // Only admin can update animals
+    const userRole = String(req.user?.role || "").toLowerCase();
+
+    if (userRole !== "admin") {
+      return res.status(403).json({ message: "Only admin can update animals" });
     }
 
     // Update volunteer if provided
@@ -183,15 +207,13 @@ export const updateAnimalState = async (req, res, next) => {
       return res.status(404).json({ message: "Animal not found" });
     }
 
-    // Authorization: FOSTER can only change status for their own animals; COORDINATOR can change any
-    const userRole = String(req.user?.role || "").toUpperCase();
-    const userId = req.user?.sub;
-    if (userRole === "FOSTER") {
-      if (Number(animal.volunteer_id) !== Number(userId)) {
-        return res.status(403).json({
-          message: "Fosters can only change status for their own animals",
-        });
-      }
+    // Only admin can change animal status
+    const userRole = String(req.user?.role || "").toLowerCase();
+
+    if (userRole !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Only admin can update animal status" });
     }
 
     // Update status in database
@@ -219,15 +241,11 @@ export const deleteAnimal = async (req, res, next) => {
       return res.status(404).json({ message: "Animal not found" });
     }
 
-    // Authorization: FOSTER can only delete their own animals; COORDINATOR can delete any
-    const userRole = String(req.user?.role || "").toUpperCase();
-    const userId = req.user?.sub;
-    if (userRole === "FOSTER") {
-      if (Number(animal.volunteer_id) !== Number(userId)) {
-        return res
-          .status(403)
-          .json({ message: "Fosters can only delete their own animals" });
-      }
+    // Only admin can delete animals
+    const userRole = String(req.user?.role || "").toLowerCase();
+
+    if (userRole !== "admin") {
+      return res.status(403).json({ message: "Only admin can delete animals" });
     }
 
     // Delete from database

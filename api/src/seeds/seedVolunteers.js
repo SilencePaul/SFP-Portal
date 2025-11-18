@@ -33,10 +33,10 @@ async function seedVolunteers() {
     ];
 
     for (const v of volunteers) {
-      await Volunteer.create(v);
+      await Volunteer.upsert(v);
     }
 
-    console.log("✓ Volunteers seeded");
+    console.log("✓ 3 volunteers seeded/updated");
     process.exit(0);
   } catch (err) {
     console.error(err);

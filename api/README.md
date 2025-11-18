@@ -5,7 +5,6 @@ This is the backend API for the Save Fur Pets (SFP) Animal Management System. It
 ## Features
 
 - RESTful API endpoints for managing:
-  - Applicants
   - Animals
   - Volunteers
   - Applications
@@ -86,14 +85,6 @@ npm start
 - `POST /api/auth/register` - Register a new volunteer
 - `GET /api/auth/verify` - Verify JWT token (protected)
 
-### Applicants
-
-- `GET /api/applicants` - Get all applicants (protected)
-- `GET /api/applicants/:id` - Get applicant by ID (protected)
-- `POST /api/applicants` - Create a new applicant
-- `PUT /api/applicants/:id` - Update applicant (protected)
-- `DELETE /api/applicants/:id` - Delete applicant (protected)
-
 ### Animals
 
 - `GET /api/animals` - Get all animals
@@ -116,7 +107,6 @@ npm start
 - `GET /api/applications` - Get all applications (protected)
 - `GET /api/applications/:id` - Get application by ID (protected)
 - `GET /api/applications/animal/:animalId` - Get applications by animal (protected)
-- `GET /api/applications/applicant/:applicantId` - Get applications by applicant (protected)
 - `POST /api/applications` - Create a new application
 - `PATCH /api/applications/:id/status` - Update application status (protected)
 
@@ -133,7 +123,6 @@ npm start
 
 - `GET /api/contracts` - Get all contracts (protected)
 - `GET /api/contracts/:id` - Get contract by ID (protected)
-- `GET /api/contracts/applicant/:applicantId` - Get contracts by applicant (protected)
 - `GET /api/contracts/animal/:animalId` - Get contracts by animal (protected)
 - `POST /api/contracts` - Create a contract (protected)
 - `PATCH /api/contracts/:id/signature` - Update contract signature (protected)
@@ -147,11 +136,9 @@ npm start
 
 The API uses role-based access control to restrict access to certain endpoints. The available roles are:
 
-- `Admin` - Full access to all endpoints
-- `Coordinator` - Manage applications, animals, volunteers, and contracts
-- `Adoption Interviewer` - Manage interviews and view applications
-- `Foster` - Manage animals they are responsible for
-- `Applicant` - View their own applications and contracts
+- `admin` - Full access to all endpoints
+- `interviewer` - Manage interviews assigned to them and view applications
+- `foster` - Manage animals they are responsible for
 
 ## License
 

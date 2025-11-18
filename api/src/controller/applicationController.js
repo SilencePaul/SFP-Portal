@@ -8,11 +8,7 @@ export const getAllApplications = async (req, res, next) => {
       include: [
         {
           model: Animal,
-          attributes: ["unique_id", "name", "species", "photo_gallery"],
-        },
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          attributes: ["unique_id", "name", "species", "image_urls"],
         },
       ],
     });
@@ -32,11 +28,7 @@ export const getApplicationById = async (req, res, next) => {
       include: [
         {
           model: Animal,
-          attributes: ["unique_id", "name", "species", "photo_gallery"],
-        },
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          attributes: ["unique_id", "name", "species", "image_urls"],
         },
       ],
     });
@@ -60,36 +52,7 @@ export const getApplicationsByAnimal = async (req, res, next) => {
       include: [
         {
           model: Animal,
-          attributes: ["unique_id", "name", "species", "photo_gallery"],
-        },
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
-        },
-      ],
-    });
-
-    res.status(200).json(applications);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getApplicationsByApplicant = async (req, res, next) => {
-  try {
-    const { applicantId } = req.params;
-    const id = parseInt(applicantId);
-
-    const applications = await Application.findAll({
-      where: { applicant_id: id },
-      include: [
-        {
-          model: Animal,
-          attributes: ["unique_id", "name", "species", "photo_gallery"],
-        },
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          attributes: ["unique_id", "name", "species", "image_urls"],
         },
       ],
     });
@@ -108,25 +71,19 @@ export const createApplication = async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { animal_id, applicant_id, ...applicationData } = req.body;
+    const { animal_id, ...applicationData } = req.body;
 
     // Check if animal exists
-    const animal = await Animal.findByPk(animal_id);
+    const animal = await Animal.findOne({ where: { unique_id: animal_id } });
     if (!animal) {
       return res.status(404).json({ message: "Animal not found" });
-    }
-
-    // Check if applicant exists
-    const applicant = await Applicant.findByPk(applicant_id);
-    if (!applicant) {
-      return res.status(404).json({ message: "Applicant not found" });
     }
 
     // Create new application
     const newApplication = await Application.create({
       ...applicationData,
       animal_id: animal_id,
-      applicant_id: applicant_id,
+      status: "submitted",
     });
 
     // Return with details
@@ -136,11 +93,7 @@ export const createApplication = async (req, res, next) => {
         include: [
           {
             model: Animal,
-            attributes: ["unique_id", "name", "species", "photo_gallery"],
-          },
-          {
-            model: Applicant,
-            attributes: ["id", "first_name", "last_name", "email"],
+            attributes: ["unique_id", "name", "species", "image_urls"],
           },
         ],
       }
@@ -173,11 +126,7 @@ export const updateApplicationStatus = async (req, res, next) => {
       include: [
         {
           model: Animal,
-          attributes: ["unique_id", "name", "species", "photo_gallery"],
-        },
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          attributes: ["unique_id", "name", "species", "image_urls"],
         },
       ],
     });

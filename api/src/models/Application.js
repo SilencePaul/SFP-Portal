@@ -23,7 +23,7 @@ const Application = sequelize.define(
       allowNull: false,
       defaultValue: "submitted",
     },
-    // Applicant Personal Information
+    // Personal Information
     full_name: {
       type: DataTypes.STRING(100),
       allowNull: false,

@@ -23,6 +23,7 @@ Interview.belongsTo(Application, { foreignKey: "application_id" });
 Interview.belongsTo(Volunteer, { foreignKey: "volunteer_id" });
 
 // Contract
+Contract.belongsTo(Application, { foreignKey: "application_id" });
 Contract.belongsTo(Animal, { foreignKey: "animal_id", targetKey: "unique_id" });
 
 // Audit & Email logs

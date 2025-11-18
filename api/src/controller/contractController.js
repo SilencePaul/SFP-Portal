@@ -1,14 +1,15 @@
 import { validationResult } from "express-validator";
 import Contract from "../models/Contract.js";
 import Animal from "../models/Animal.js";
+import Application from "../models/Application.js";
 
 export const getAllContracts = async (req, res, next) => {
   try {
     const contracts = await Contract.findAll({
       include: [
         {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          model: Application,
+          attributes: ["id", "full_name", "email", "status"],
         },
         { model: Animal, attributes: ["unique_id", "name", "species"] },
       ],
@@ -28,8 +29,8 @@ export const getContractById = async (req, res, next) => {
     const contract = await Contract.findByPk(contractId, {
       include: [
         {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          model: Application,
+          attributes: ["id", "full_name", "email", "status"],
         },
         { model: Animal, attributes: ["unique_id", "name", "species"] },
       ],
@@ -45,28 +46,6 @@ export const getContractById = async (req, res, next) => {
   }
 };
 
-export const getContractsByApplicant = async (req, res, next) => {
-  try {
-    const { applicantId } = req.params;
-    const id = parseInt(applicantId);
-
-    const contracts = await Contract.findAll({
-      where: { applicant_id: id },
-      include: [
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
-        },
-        { model: Animal, attributes: ["unique_id", "name", "species"] },
-      ],
-    });
-
-    res.status(200).json(contracts);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const getContractsByAnimal = async (req, res, next) => {
   try {
     const { animalId } = req.params;
@@ -74,10 +53,6 @@ export const getContractsByAnimal = async (req, res, next) => {
     const contracts = await Contract.findAll({
       where: { animal_id: animalId },
       include: [
-        {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
-        },
         { model: Animal, attributes: ["unique_id", "name", "species"] },
       ],
     });
@@ -96,33 +71,29 @@ export const createContract = async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { applicant_id, animal_id, ...contractData } = req.body;
+    const { application_id, ...contractData } = req.body;
 
-    // Check if applicant exists
-    const applicant = await Applicant.findByPk(applicant_id);
-    if (!applicant) {
-      return res.status(404).json({ message: "Applicant not found" });
-    }
-
-    // Check if animal exists
-    const animal = await Animal.findByPk(animal_id);
-    if (!animal) {
-      return res.status(404).json({ message: "Animal not found" });
+    // Check if application exists
+    const application = await Application.findByPk(application_id, {
+      include: [{ model: Animal, attributes: ["unique_id"] }],
+    });
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
     }
 
     // Create new contract
     const newContract = await Contract.create({
       ...contractData,
-      applicant_id: applicant_id,
-      animal_id: animal_id,
+      application_id: application_id,
+      animal_id: application.animal_id,
     });
 
     // Return with details
     const contractWithDetails = await Contract.findByPk(newContract.id, {
       include: [
         {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          model: Application,
+          attributes: ["id", "full_name", "email", "status"],
         },
         { model: Animal, attributes: ["unique_id", "name", "species"] },
       ],
@@ -134,11 +105,11 @@ export const createContract = async (req, res, next) => {
   }
 };
 
-export const updateContractSignature = async (req, res, next) => {
+export const updateContract = async (req, res, next) => {
   try {
     const { id } = req.params;
     const contractId = parseInt(id);
-    const { signature } = req.body;
+    const updateData = req.body;
 
     // Find contract in database
     const contract = await Contract.findByPk(contractId);
@@ -147,15 +118,15 @@ export const updateContractSignature = async (req, res, next) => {
       return res.status(404).json({ message: "Contract not found" });
     }
 
-    // Update signature
-    await contract.update({ signature });
+    // Update contract
+    await contract.update(updateData);
 
     // Return with details
     const updatedContract = await Contract.findByPk(contractId, {
       include: [
         {
-          model: Applicant,
-          attributes: ["id", "first_name", "last_name", "email"],
+          model: Application,
+          attributes: ["id", "full_name", "email", "status"],
         },
         { model: Animal, attributes: ["unique_id", "name", "species"] },
       ],
