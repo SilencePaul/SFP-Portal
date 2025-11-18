@@ -90,14 +90,24 @@ const statusClass = (status: string) => {
 
 export default function ApplicationManagement() {
   const { currentUser } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState<string>("all");
+  
+  const isAdmin = currentUser?.role.includes("admin");
+  const isInterviewer = currentUser?.role.includes("interviewer");
+
+  // Set default filter based on role
+  // Admins see "Reserved" (animals under review) by default
+  // Interviewers see "Interviewing" (animals they're working with) by default
+  const getDefaultTab = () => {
+    if (isAdmin) return "reserved";
+    if (isInterviewer) return "interviewing";
+    return "all";
+  };
+
+  const [activeTab, setActiveTab] = useState<string>(getDefaultTab());
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [applications, setApplications] = useState<UiApplication[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const isAdmin = currentUser?.role.includes("admin");
-  const isInterviewer = currentUser?.role.includes("interviewer");
 
   if (!currentUser || (!isAdmin && !isInterviewer)) {
     return (
