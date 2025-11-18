@@ -96,10 +96,10 @@ export default function ApplicationManagement() {
 
   // Set default filter based on role
   // Admins see "Reserved" (animals under review) by default
-  // Interviewers see "Interviewing" (animals they're working with) by default
+  // Interviewers see "Published" (animals they're working with) by default
   const getDefaultTab = () => {
     if (isAdmin) return "reserved";
-    if (isInterviewer) return "interviewing";
+    if (isInterviewer) return "published";
     return "all";
   };
 
