@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { AuthContext } from "@/contexts/authContext";
-import { calculateDaysInSFP } from "@/data/mockAnimals";
+import { calculateDaysInSFP } from "@/lib/dateUtils";
 import { toast } from "sonner";
 
 // Helper function to format status in camel case

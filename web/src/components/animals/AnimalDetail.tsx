@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { calculateDaysInSFP } from "@/data/mockAnimals";
+import { calculateDaysInSFP } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { AuthContext } from "@/contexts/authContext";
 

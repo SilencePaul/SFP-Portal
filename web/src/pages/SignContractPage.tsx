@@ -2,7 +2,7 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '@/contexts/authContext';
-import { getAnimalById } from '@/data/mockAnimals';
+import { apiGet } from '@/lib/api';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -27,7 +27,33 @@ export default function SignContractPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
-  const animal = getAnimalById(id || '');
+  const [animal, setAnimal] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Fetch animal data
+  useEffect(() => {
+    const fetchAnimal = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await apiGet(`/api/animals/${id}`);
+        setAnimal({
+          id: data.id,
+          uniqueId: data.unique_id || data.uniqueId,
+          name: data.name,
+          species: data.species,
+          breed: data.breed,
+          adoptionFee: data.adoption_fee || data.adoptionFee,
+        });
+      } catch (error) {
+        console.error('Error fetching animal:', error);
+        toast.error('Failed to load animal details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnimal();
+  }, [id]);
   
   // Form state
   const [formData, setFormData] = useState<ContractFormData>({
@@ -70,6 +96,26 @@ export default function SignContractPage() {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
   }, []);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen py-12 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-12 text-center">
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
+                <i className="fa-solid fa-spinner fa-spin text-gray-400 text-4xl"></i>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Loading...</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Please wait while we load the animal details.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   if (!animal) {
     return (

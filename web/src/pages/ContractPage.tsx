@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '@/contexts/authContext';
-import { getAnimalById } from '@/data/mockAnimals';
+import { apiGet } from '@/lib/api';
 import { toast } from 'sonner';
 import { z } from 'zod';
 

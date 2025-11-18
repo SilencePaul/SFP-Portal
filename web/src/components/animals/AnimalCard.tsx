@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { calculateDaysInSFP } from "@/data/mockAnimals";
+import { calculateDaysInSFP } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 
 interface AnimalCardProps {

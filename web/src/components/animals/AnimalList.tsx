@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AnimalCard from "./AnimalCard";
-import { calculateDaysInSFP } from "@/data/mockAnimals";
+import { calculateDaysInSFP } from "@/lib/dateUtils";
 
 // Utility to normalize backend animal data to frontend format
 function normalizeAnimal(animal: any) {
