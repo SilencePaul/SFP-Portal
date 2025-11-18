@@ -65,12 +65,23 @@ interface UiApplication {
   animalSpecies?: string;
 }
 
+interface Interview {
+  id: number;
+  application_id: number;
+  volunteer_id: number;
+  volunteer_name: string;
+  interview_time: string | null;
+  interview_result: string | null;
+  final_decision: string;
+}
+
 export default function ApplicationDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
 
   const [application, setApplication] = useState<UiApplication | null>(null);
+  const [interview, setInterview] = useState<Interview | null>(null);
   const [status, setStatus] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +133,21 @@ export default function ApplicationDetails() {
       const ui = transform(data);
       setApplication(ui);
       setStatus(ui.status);
+
+      // Fetch interview data if application status is 'interview'
+      if (ui.status === "interview") {
+        try {
+          const interviews: Interview[] = await apiGet("/api/interviews");
+          const appInterview = interviews.find(
+            (int) => int.application_id === ui.id
+          );
+          if (appInterview) {
+            setInterview(appInterview);
+          }
+        } catch (err) {
+          console.error("Failed to fetch interview data:", err);
+        }
+      }
     } catch (e: any) {
       setError(e.message || "Failed to load application");
     } finally {
@@ -406,26 +432,84 @@ export default function ApplicationDetails() {
                     Contact Applicant
                   </button>
                   {(isAdmin || roles.includes("interviewer")) && (
-                    <button
-                      onClick={handleScheduleInterview}
-                      disabled={status === "interview"}
-                      className={`inline-flex items-center font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md ${
-                        status === "interview"
-                          ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                          : "bg-green-600 hover:bg-green-700 text-white hover:shadow-lg"
-                      }`}
-                      title={
-                        status === "interview"
-                          ? "Interview already scheduled"
-                          : ""
-                      }
-                    >
-                      <i className="fa-solid fa-calendar-plus mr-2"></i>
-                      Schedule Interview
-                    </button>
+                    <>
+                      {status !== "interview" ? (
+                        <button
+                          onClick={handleScheduleInterview}
+                          className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                        >
+                          <i className="fa-solid fa-calendar-plus mr-2"></i>
+                          Schedule Interview
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            navigate(`/schedule-interview/${application.id}`)
+                          }
+                          className="inline-flex items-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                        >
+                          <i className="fa-solid fa-calendar-day mr-2"></i>
+                          Reschedule Interview
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
+
+              {/* Interview Details Section */}
+              {interview && interview.interview_time && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl shadow-md p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mr-3">
+                      <i className="fa-solid fa-calendar-check text-purple-600 dark:text-purple-400 text-lg"></i>
+                    </div>
+                    <h2 className="text-xl font-bold text-purple-900 dark:text-purple-300">
+                      Scheduled Interview
+                    </h2>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-start">
+                      <i className="fa-solid fa-clock text-purple-500 dark:text-purple-400 mt-1 mr-3"></i>
+                      <div>
+                        <p className="text-sm text-purple-700 dark:text-purple-300 font-medium">
+                          Date & Time
+                        </p>
+                        <p className="text-purple-900 dark:text-purple-200">
+                          {new Date(interview.interview_time).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}{" "}
+                          at{" "}
+                          {new Date(interview.interview_time).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <i className="fa-solid fa-user-tie text-purple-500 dark:text-purple-400 mt-1 mr-3"></i>
+                      <div>
+                        <p className="text-sm text-purple-700 dark:text-purple-300 font-medium">
+                          Interviewer
+                        </p>
+                        <p className="text-purple-900 dark:text-purple-200">
+                          {interview.volunteer_name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">

@@ -35,12 +35,25 @@ interface Application {
   };
 }
 
+interface Interview {
+  id: number;
+  application_id: number;
+  volunteer_id: number;
+  volunteer_name: string;
+  interview_time: string | null;
+  interview_result: string | null;
+  final_decision: string;
+}
+
 export default function ScheduleInterview() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
 
   const [application, setApplication] = useState<Application | null>(null);
+  const [existingInterview, setExistingInterview] = useState<Interview | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -72,6 +85,35 @@ export default function ScheduleInterview() {
         if (id) {
           const data = await apiGet(`/api/applications/${id}`);
           setApplication(data);
+
+          // Fetch existing interview if application status is 'interview'
+          if (data.status === "interview") {
+            try {
+              const interviews: Interview[] = await apiGet("/api/interviews");
+              const appInterview = interviews.find(
+                (int: Interview) => int.application_id === Number(id)
+              );
+              if (appInterview && appInterview.interview_time) {
+                setExistingInterview(appInterview);
+                
+                // Pre-fill form with existing interview data
+                const interviewDate = new Date(appInterview.interview_time);
+                const dateStr = interviewDate.toISOString().split("T")[0];
+                const timeStr = interviewDate
+                  .toTimeString()
+                  .split(" ")[0]
+                  .substring(0, 5);
+                
+                setFormData((prev) => ({
+                  ...prev,
+                  date: dateStr,
+                  time: timeStr,
+                }));
+              }
+            } catch (err) {
+              console.error("Failed to fetch existing interview:", err);
+            }
+          }
         } else {
           // If no ID provided, show a selection interface or list
           setError("No application selected");
@@ -221,17 +263,69 @@ export default function ScheduleInterview() {
               <i className="fa-solid fa-arrow-left text-xl"></i>
             </button>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-              Schedule Interview
+              {existingInterview ? "Reschedule Interview" : "Schedule Interview"}
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             {loading
               ? "Loading application..."
               : application
-              ? `Schedule an interview for ${application.full_name} and ${application.Animal?.name}`
+              ? existingInterview
+                ? `Update the interview schedule for ${application.full_name} and ${application.Animal?.name}`
+                : `Schedule an interview for ${application.full_name} and ${application.Animal?.name}`
               : "No application selected"}
           </p>
         </motion.div>
+
+        {existingInterview && existingInterview.interview_time && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-6 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-6"
+          >
+            <div className="flex items-start">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                <i className="fa-solid fa-calendar-check text-purple-600 dark:text-purple-400 text-lg"></i>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-300 mb-2">
+                  Current Interview Schedule
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center text-purple-700 dark:text-purple-300">
+                    <i className="fa-solid fa-clock mr-2"></i>
+                    <span>
+                      {new Date(
+                        existingInterview.interview_time
+                      ).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}{" "}
+                      at{" "}
+                      {new Date(
+                        existingInterview.interview_time
+                      ).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-purple-700 dark:text-purple-300">
+                    <i className="fa-solid fa-user-tie mr-2"></i>
+                    <span>Interviewer: {existingInterview.volunteer_name}</span>
+                  </div>
+                </div>
+                <p className="text-sm text-purple-600 dark:text-purple-400 mt-3">
+                  <i className="fa-solid fa-info-circle mr-1"></i>
+                  You can update the date and time below to reschedule
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {error && (
           <div className="mb-6 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
