@@ -6,8 +6,8 @@
   "scripts": {
     "dev:client": "vite --host --port 3000",
     "dev": "vite --host --port 3000",
-    "build:client": "vite build --outDir dist/static",
-    "build": "vite build --outDir dist/static && cp package.json dist"
+    "build:client": "vite build",
+    "build": "vite build"
   },
   "dependencies": {
     "clsx": "^2.1.1",

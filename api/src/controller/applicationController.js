@@ -4,7 +4,10 @@ import Animal from "../models/Animal.js";
 import Volunteer from "../models/Volunteer.js";
 import Contract from "../models/Contract.js";
 import crypto from "crypto";
-import { sendApplicationConfirmationEmail, sendNewApplicationNotificationEmail } from "../services/emailService.js";
+import {
+  sendApplicationConfirmationEmail,
+  sendNewApplicationNotificationEmail,
+} from "../services/emailService.js";
 
 export const getAllApplications = async (req, res, next) => {
   try {
@@ -97,7 +100,13 @@ export const createApplication = async (req, res, next) => {
         include: [
           {
             model: Animal,
-            attributes: ["unique_id", "name", "species", "image_urls", "status"],
+            attributes: [
+              "unique_id",
+              "name",
+              "species",
+              "image_urls",
+              "status",
+            ],
           },
         ],
       }
@@ -110,8 +119,8 @@ export const createApplication = async (req, res, next) => {
       animal_id: animal_id,
       animal_name: animal.name,
       application_id: newApplication.id,
-    }).catch(err => {
-      console.error('Failed to send confirmation email:', err);
+    }).catch((err) => {
+      console.error("Failed to send confirmation email:", err);
       // Don't fail the request if email fails
     });
 
@@ -119,33 +128,36 @@ export const createApplication = async (req, res, next) => {
     try {
       const recipients = await Volunteer.findAll({
         where: {
-          role: ['admin', 'interviewer'],
-          status: 'active'
+          role: ["admin", "interviewer"],
+          status: "active",
         },
-        attributes: ['id', 'first_name', 'last_name', 'email']
+        attributes: ["id", "first_name", "last_name", "email"],
       });
 
       if (recipients.length > 0) {
-        const recipientList = recipients.map(r => ({
+        const recipientList = recipients.map((r) => ({
           name: `${r.first_name} ${r.last_name}`,
-          email: r.email
+          email: r.email,
         }));
 
-        sendNewApplicationNotificationEmail({
-          applicant_name: applicationData.full_name,
-          applicant_email: applicationData.email,
-          animal_id: animal_id,
-          animal_name: animal.name,
-          application_id: newApplication.id,
-          phone_number: applicationData.phone_number,
-          address: applicationData.address,
-        }, recipientList).catch(err => {
-          console.error('Failed to send notification emails:', err);
+        sendNewApplicationNotificationEmail(
+          {
+            applicant_name: applicationData.full_name,
+            applicant_email: applicationData.email,
+            animal_id: animal_id,
+            animal_name: animal.name,
+            application_id: newApplication.id,
+            phone_number: applicationData.phone_number,
+            address: applicationData.address,
+          },
+          recipientList
+        ).catch((err) => {
+          console.error("Failed to send notification emails:", err);
           // Don't fail the request if email fails
         });
       }
     } catch (err) {
-      console.error('Failed to fetch recipients for notification emails:', err);
+      console.error("Failed to fetch recipients for notification emails:", err);
       // Don't fail the request if email fails
     }
 
@@ -162,11 +174,18 @@ export const updateApplicationStatus = async (req, res, next) => {
     const { status } = req.body;
 
     // Valid application statuses
-    const validStatuses = ["submitted", "interview", "review", "approved", "rejected"];
-    
+    const validStatuses = [
+      "submitted",
+      "interview",
+      "interview_scheduled",
+      "under_review",
+      "approved",
+      "rejected",
+    ];
+
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ 
-        message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` 
+      return res.status(400).json({
+        message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
       });
     }
 
@@ -181,17 +200,18 @@ export const updateApplicationStatus = async (req, res, next) => {
       // Admins can change to any status (including reverting approved back to other statuses)
       // No restrictions
     } else if (isInterviewer) {
-      // Interviewers can only change to "interview" or "review" statuses
-      const allowedStatuses = ["interview", "review"];
+      // Interviewers can only change to "interview" or "under_review" statuses
+      const allowedStatuses = ["interview", "under_review"];
       if (!allowedStatuses.includes(status)) {
-        return res.status(403).json({ 
-          message: "Interviewers can only set status to 'interview' or 'review'" 
+        return res.status(403).json({
+          message:
+            "Interviewers can only set status to 'interview' or 'under_review'",
         });
       }
     } else {
       // Other roles cannot change application status
-      return res.status(403).json({ 
-        message: "You don't have permission to update application status" 
+      return res.status(403).json({
+        message: "You don't have permission to update application status",
       });
     }
 
@@ -207,20 +227,24 @@ export const updateApplicationStatus = async (req, res, next) => {
     // Update status
     await application.update({ status });
 
-    console.log(`✅ Application #${applicationId} status changed from "${oldStatus}" to "${status}" by ${isAdmin ? 'admin' : 'interviewer'}`);
+    console.log(
+      `✅ Application #${applicationId} status changed from "${oldStatus}" to "${status}" by ${
+        isAdmin ? "admin" : "interviewer"
+      }`
+    );
 
     // If status changed to "approved", create contract and send email with token
     if (status === "approved" && oldStatus !== "approved") {
       try {
         // Get animal details
-        const animal = await Animal.findOne({ 
+        const animal = await Animal.findOne({
           where: { unique_id: application.animal_id },
-          attributes: ["id", "unique_id", "name", "species", "adoption_fee"]
+          attributes: ["id", "unique_id", "name", "species", "adoption_fee"],
         });
 
         if (animal) {
           // Generate secure token (48-hour expiry)
-          const token = crypto.randomBytes(32).toString('hex');
+          const token = crypto.randomBytes(32).toString("hex");
           const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours from now
 
           // Create or update contract with token
@@ -249,11 +273,14 @@ export const updateApplicationStatus = async (req, res, next) => {
           }
 
           // Generate contract signing link
-          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+          const frontendUrl =
+            process.env.FRONTEND_URL || "http://localhost:3000";
           const contractLink = `${frontendUrl}/contract/sign?token=${token}`;
 
           // Send contract email (import from emailService.js)
-          const { sendContractEmail } = await import("../services/emailService.js");
+          const { sendContractEmail } = await import(
+            "../services/emailService.js"
+          );
           await sendContractEmail({
             adopter_name: application.full_name,
             adopter_email: application.email,
@@ -263,14 +290,21 @@ export const updateApplicationStatus = async (req, res, next) => {
             expires_in_hours: 48,
           });
 
-          console.log(`📧 Contract email sent to ${application.email} with token (expires in 48 hours)`);
+          console.log(
+            `📧 Contract email sent to ${application.email} with token (expires in 48 hours)`
+          );
 
           // Update animal status to "reserved" (will change to "adopted" after contract is signed)
           await animal.update({ status: "reserved" });
-          console.log(`🔒 Animal ${animal.unique_id} status changed to "reserved" (pending contract signature)`);
+          console.log(
+            `🔒 Animal ${animal.unique_id} status changed to "reserved" (pending contract signature)`
+          );
         }
       } catch (error) {
-        console.error('⚠️  Application approved but contract email failed:', error);
+        console.error(
+          "⚠️  Application approved but contract email failed:",
+          error
+        );
         // Don't fail the request if email fails
       }
     }

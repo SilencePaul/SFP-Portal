@@ -1,7 +1,11 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 
-dotenv.config();
+// Only load .env if we're not in a containerized environment
+// (Docker sets env vars directly, so .env shouldn't override them)
+if (!process.env.DB_HOST) {
+  dotenv.config();
+}
 
 // Flag to indicate if we're running in mock/development mode
 let useMockDB = false;
