@@ -1,8 +1,19 @@
 # Node.js dependencies
 node_modules/
 
-# Environment files
+# Environment files - NEVER commit these!
 .env
+.env.local
+.env.*.local
+.env.production
+.env.production.local
+api/.env
+web/.env
+
+# Kubernetes secrets - NEVER commit real values!
+infra/k8s/02-secret.yaml.prod
+infra/k8s/02-secret*.actual
+infra/k8s/*-secret.actual
 
 # Logs
 *.log
@@ -11,12 +22,21 @@ yarn-error.log
 
 # React build output
 web/build
+web/dist
 
 # Docker
-*.env
+*.env.docker
 
 # VSCode
 .vscode/
 
-# OS files
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~# OS files
 .DS_Store

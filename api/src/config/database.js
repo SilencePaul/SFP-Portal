@@ -11,6 +11,8 @@ if (!process.env.DB_HOST) {
 let useMockDB = false;
 
 // Create PostgreSQL connection using Sequelize
+const useSSL = process.env.DB_SSL === "true";
+
 const sequelize = new Sequelize(
   process.env.DB_NAME || "sfp_portal",
   process.env.DB_USER,
@@ -21,6 +23,10 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     logging: false, // Disable logging to avoid deprecation warning
     connectionTimeoutMillis: 5001,
+    ssl: useSSL,
+    dialectOptions: useSSL
+      ? { ssl: { require: true, rejectUnauthorized: false } }
+      : {},
   }
 );
 

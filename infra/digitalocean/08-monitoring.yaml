@@ -1,0 +1,107 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-metrics
+  namespace: sfp-portal
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-metrics
+  namespace: sfp-portal
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  endpoints:
+    - port: redis
+      interval: 30s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sfp-portal-alerts
+  namespace: sfp-portal
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: sfp-portal
+      interval: 30s
+      rules:
+        - alert: APIDown
+          expr: up{job="api-metrics"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "API is down"
+            description: "API pod has been unavailable for 2 minutes"
+
+        - alert: HighCPUUsage
+          expr: |
+            (sum(rate(container_cpu_usage_seconds_total{pod=~"api-.*"}[5m])) by (pod) / 
+            sum(container_spec_cpu_quota{pod=~"api-.*"}) by (pod)) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU usage detected"
+            description: "Pod {{ $labels.pod }} CPU usage is above 80%"
+
+        - alert: HighMemoryUsage
+          expr: |
+            (sum(container_memory_usage_bytes{pod=~"api-.*"}) by (pod) /
+            sum(container_spec_memory_limit_bytes{pod=~"api-.*"}) by (pod)) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage detected"
+            description: "Pod {{ $labels.pod }} memory usage is above 80%"
+
+        - alert: PodRestartingTooOften
+          expr: rate(kube_pod_container_status_restarts_total[1h]) > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod is restarting frequently"
+            description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+
+        - alert: DatabaseConnectionFailed
+          expr: |
+            increase(api_db_connection_errors_total[5m]) > 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Database connection failures detected"
+            description: "API is unable to connect to PostgreSQL database"
+
+        - alert: HighErrorRate
+          expr: |
+            (sum(rate(api_http_requests_total{status=~"5.."}[5m])) /
+            sum(rate(api_http_requests_total[5m]))) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High error rate detected"
+            description: "API error rate is above 5%"

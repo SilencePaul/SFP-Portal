@@ -6,23 +6,33 @@ metadata:
   labels:
     app: api
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
         app: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: api
-          image: sfp-portal-api:latest
-          imagePullPolicy: Never
+          image: registry.digitalocean.com/sfp-portal/api:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
               name: http
-              protocol: TCP
           env:
             - name: NODE_ENV
               valueFrom:
@@ -36,39 +46,33 @@ spec:
                   key: PORT
             - name: DB_NAME
               valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: POSTGRES_DB
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: DB_NAME
             - name: DB_HOST
               valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: POSTGRES_HOST
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: DB_HOST
             - name: DB_PORT
               valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: POSTGRES_PORT
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: DB_PORT
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets
+                  name: postgres-credentials
                   key: POSTGRES_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets
+                  name: postgres-credentials
                   key: POSTGRES_PASSWORD
-            - name: REDIS_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: REDIS_HOST
-            - name: REDIS_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: REDIS_PORT
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: DB_SSL
+              value: "true"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -79,23 +83,19 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: SENDGRID_API_KEY
-                  optional: true
-            - name: REDIS_URL
-              value: "redis://redis:6379"
           resources:
             requests:
-              cpu: 200m
-              memory: 256Mi
+              cpu: 100m
+              memory: 128Mi
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 300m
+              memory: 256Mi
           livenessProbe:
             httpGet:
               path: /api/health
               port: 5000
             initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
@@ -103,12 +103,7 @@ spec:
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 5
-            timeoutSeconds: 3
             failureThreshold: 2
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "sleep 15"]
 ---
 apiVersion: v1
 kind: Service
@@ -124,9 +119,7 @@ spec:
   ports:
     - port: 5000
       targetPort: 5000
-      protocol: TCP
       name: http
-  sessionAffinity: None
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -138,8 +131,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: api
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 2
+  maxReplicas: 5
   metrics:
     - type: Resource
       resource:

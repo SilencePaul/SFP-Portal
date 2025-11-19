@@ -4,7 +4,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Accept build argument for API URL
-ARG VITE_API_BASE_URL=http://api:5000
+ARG VITE_API_BASE_URL=http://129.212.134.118
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Install pnpm

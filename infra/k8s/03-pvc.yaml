@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: do-block-storage # DigitalOcean block storage
+  storageClassName: standard
   resources:
     requests:
       storage: 20Gi
@@ -19,7 +19,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: do-block-storage
+  storageClassName: standard
   resources:
     requests:
       storage: 5Gi
