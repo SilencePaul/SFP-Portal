@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-config
+  namespace: sfp-portal
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_auth_username: 'your-email@gmail.com'
+      smtp_auth_password: 'your-app-password'
+      smtp_require_tls: true
+      slack_api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+
+    route:
+      receiver: 'default'
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      routes:
+        # Critical alerts - immediate email
+        - match:
+            severity: critical
+          receiver: 'critical-email'
+          group_wait: 5s
+          repeat_interval: 1h
+
+        # Warning alerts - less frequent
+        - match:
+            severity: warning
+          receiver: 'warning-slack'
+          repeat_interval: 4h
+
+    receivers:
+      - name: 'default'
+        email_configs:
+          - to: 'team@example.com'
+            from: 'alerts@sfp-portal.com'
+            smarthost: 'smtp.gmail.com:587'
+            auth_username: 'your-email@gmail.com'
+            auth_password: 'your-app-password'
+            require_tls: true
+            headers:
+              Subject: 'SFP Portal Alert'
+
+      - name: 'critical-email'
+        email_configs:
+          - to: 'critical-alerts@example.com,oncall@example.com'
+            from: 'alerts@sfp-portal.com'
+            smarthost: 'smtp.gmail.com:587'
+            auth_username: 'your-email@gmail.com'
+            auth_password: 'your-app-password'
+            require_tls: true
+            headers:
+              Subject: '🚨 CRITICAL: SFP Portal Alert'
+
+      - name: 'warning-slack'
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+            channel: '#sfp-alerts'
+            title: 'SFP Portal Warning'
+            text: '{{ .GroupLabels.alertname }}: {{ .Alerts.Firing | len }} firing'

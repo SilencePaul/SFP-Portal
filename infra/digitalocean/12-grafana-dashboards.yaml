@@ -1,0 +1,203 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: sfp-portal
+data:
+  api-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "SFP Portal - API Metrics",
+        "tags": ["api", "production"],
+        "timezone": "browser",
+        "schemaVersion": 27,
+        "version": 1,
+        "refresh": "30s",
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "type": "graph",
+            "title": "CPU Usage (%)",
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"api-.*\"}[5m])) * 100",
+                "refId": "A",
+                "legendFormat": "CPU %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 50 },
+                    { "color": "red", "value": 80 }
+                  ]
+                },
+                "unit": "percent",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 2,
+            "type": "graph",
+            "title": "Memory Usage (MB)",
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "sum(container_memory_usage_bytes{pod=~\"api-.*\"}) / 1024 / 1024",
+                "refId": "A",
+                "legendFormat": "Memory MB"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 200 },
+                    { "color": "red", "value": 256 }
+                  ]
+                },
+                "unit": "decmbytes",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 3,
+            "type": "graph",
+            "title": "Error Rate (%) - 5xx Errors",
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[2m])) / sum(rate(http_requests_total[2m])) * 100",
+                "refId": "A",
+                "legendFormat": "Error Rate %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 2 },
+                    { "color": "red", "value": 5 }
+                  ]
+                },
+                "unit": "percent",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 4,
+            "type": "graph",
+            "title": "Request Rate (RPS)",
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[1m]))",
+                "refId": "A",
+                "legendFormat": "RPS"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 200 },
+                    { "color": "red", "value": 300 }
+                  ]
+                },
+                "unit": "ops",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 5,
+            "type": "graph",
+            "title": "Latency P50 (seconds)",
+            "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                "refId": "A",
+                "legendFormat": "P50"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 6,
+            "type": "graph",
+            "title": "Latency P95 (seconds)",
+            "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                "refId": "A",
+                "legendFormat": "P95"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 0.3 },
+                    { "color": "red", "value": 0.5 }
+                  ]
+                },
+                "unit": "s",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 7,
+            "type": "graph",
+            "title": "Latency P99 (seconds)",
+            "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                "refId": "A",
+                "legendFormat": "P99"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "custom": {}
+              }
+            }
+          }
+        ]
+      }
+    }

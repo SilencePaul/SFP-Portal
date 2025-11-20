@@ -1,32 +1,91 @@
 import client from "prom-client";
 
-// Default registry
-const register = client.register;
+// Create a registry
+const register = new client.Registry();
 
-// Create metrics
-const httpRequestDurationMs = new client.Histogram({
-  name: "http_request_duration_ms",
-  help: "Duration of HTTP requests in ms",
-  labelNames: ["method", "route", "code"],
-  buckets: [50, 100, 200, 300, 500, 1000, 2000],
+// Default metrics (CPU, memory, etc.)
+client.collectDefaultMetrics({ register });
+
+// Custom metrics
+const httpRequestDuration = new client.Histogram({
+  name: "http_request_duration_seconds",
+  help: "Duration of HTTP requests in seconds",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.1, 0.5, 1, 2, 5],
+  registers: [register],
 });
 
-const httpRequestsTotal = new client.Counter({
+const httpRequestTotal = new client.Counter({
   name: "http_requests_total",
   help: "Total number of HTTP requests",
-  labelNames: ["method", "route", "code"],
+  labelNames: ["method", "route", "status_code"],
+  registers: [register],
 });
 
-// Middleware to measure request duration
-export const metricsMiddleware = (req, res, next) => {
-  const end = httpRequestDurationMs.startTimer();
-  const route = req.route ? req.route.path : req.path || req.originalUrl;
+const httpRequestSize = new client.Histogram({
+  name: "http_request_size_bytes",
+  help: "Size of HTTP requests in bytes",
+  labelNames: ["method", "route"],
+  buckets: [100, 1000, 5000, 10000, 50000],
+  registers: [register],
+});
 
-  res.on("finish", () => {
-    const labels = { method: req.method, route, code: res.statusCode };
-    httpRequestsTotal.inc(labels, 1);
-    end(labels);
-  });
+const httpResponseSize = new client.Histogram({
+  name: "http_response_size_bytes",
+  help: "Size of HTTP responses in bytes",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [100, 1000, 5000, 10000, 50000],
+  registers: [register],
+});
+
+const dbQueryDuration = new client.Histogram({
+  name: "db_query_duration_seconds",
+  help: "Duration of database queries in seconds",
+  labelNames: ["operation", "table"],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register],
+});
+
+const dbQueryTotal = new client.Counter({
+  name: "db_queries_total",
+  help: "Total number of database queries",
+  labelNames: ["operation", "table", "status"],
+  registers: [register],
+});
+
+// Middleware to collect HTTP metrics
+export const metricsMiddleware = (req, res, next) => {
+  const startTime = Date.now();
+  const route = req.route?.path || req.path;
+  const method = req.method;
+
+  // Track request size
+  const requestSize = req.headers["content-length"] || 0;
+  httpRequestSize.labels(method, route).observe(parseInt(requestSize) || 0);
+
+  // Track response
+  const originalSend = res.send;
+  res.send = function (data) {
+    const duration = (Date.now() - startTime) / 1000;
+    const statusCode = res.statusCode;
+
+    // Record metrics
+    httpRequestDuration.labels(method, route, statusCode).observe(duration);
+
+    httpRequestTotal.labels(method, route, statusCode).inc();
+
+    // Response size
+    const responseSize = Buffer.byteLength(
+      typeof data === "string" ? data : JSON.stringify(data)
+    );
+    httpResponseSize.labels(method, route, statusCode).observe(responseSize);
+
+    console.log(
+      `📊 [${method}] ${route} - ${statusCode} (${duration.toFixed(3)}s)`
+    );
+
+    return originalSend.call(this, data);
+  };
 
   next();
 };

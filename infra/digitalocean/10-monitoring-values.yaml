@@ -1,0 +1,73 @@
+# Prometheus + Grafana + Alertmanager setup for SFP-Portal
+# Helm values for kube-prometheus-stack
+
+prometheus:
+  prometheusSpec:
+    retention: 7d # Keep metrics for 7 days
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: do-block-storage
+          resources:
+            requests:
+              storage: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    serviceMonitorSelector: {}
+    ruleSelector: {}
+
+grafana:
+  enabled: true
+  adminPassword: "admin" # CHANGE THIS TO A STRONG PASSWORD
+  persistence:
+    enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://monitoring-prometheus:9090
+          access: proxy
+          isDefault: true
+
+alertmanager:
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ["alertname", "cluster", "service"]
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: "null"
+    receivers:
+      - name: "null"
+
+prometheus-node-exporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+prometheus-pushgateway:
+  enabled: false
+
+# Disable kubelet TLS verification for easier setup
+kubeControllerManager:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
