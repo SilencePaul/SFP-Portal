@@ -14,7 +14,7 @@ Video URL: https://youtu.be/kvB1B6O-kOc
 | Name       | Student Number | Email                         | Role                    |
 | ---------- | -------------- | ----------------------------- | ----------------------- |
 | Yiming Liu | 1011337402     | yimingpaul.liu@mail.utoronto.ca | Frontend & UI Owner     |
-| Jinhua Yan | 1012858686     | sudojinhua.yan@mail.utoronto.ca   | Backend & Auth Owner    |
+| Jinhua Yan | 1012858686     | jinhua.yan@mail.utoronto.ca   | Backend & Auth Owner    |
 | Jiayan Xu  | 1012882436     | rayjiayan.xu@mail.utoronto.ca | Platform & DevOps Owner |
 
 ---
@@ -760,105 +760,63 @@ kubectl -n sfp-portal get svc web
 
 ### 10.1 Technical Lessons
 
-#### 1. **Kubernetes is Powerful but Requires Careful Configuration**
+**1. Kubernetes requires deliberate configuration.**  
+Rolling updates, readiness/liveness probes, and HPA tuning are essential for zero-downtime deployment. Misconfiguration can easily cause outages.
 
-- **Learning:** Rolling updates with `maxSurge` and `maxUnavailable` are crucial for zero-downtime deployments. Misconfiguring these can lead to downtime or cascading failures.
-- **Application:** We tuned `maxSurge: 1` and `maxUnavailable: 0` to ensure old and new pods coexist during updates, preventing request loss.
-- **Takeaway:** Always test orchestration strategies in staging before production.
+**2. Environment variable management is critical for portability.**  
+Separating build-time variables (e.g., `VITE_API_BASE_URL`) from runtime configuration (e.g., `FRONTEND_URL`) prevented deployment failures and ensured consistent environments across local, staging, and production.
 
-#### 2. **Environment Variable Management is Critical**
+**3. Docker volume mounts must be scoped carefully.**  
+An overly broad bind mount initially overwrote `node_modules`, causing missing-module errors. Restricting mounts and understanding Docker layer behavior resolved the issue.
 
-- **Learning:** Hardcoding API URLs or credentials causes deployment failures. Using ConfigMaps and Secrets ensures portability across environments.
-- **Application:** We separated `FRONTEND_URL` (backend-side) from `VITE_API_BASE_URL` (frontend build-time), requiring careful coordination between ConfigMap and Dockerfile args.
-- **Takeaway:** Document all environment variables; automate their injection into containers.
+**4. Presigned URLs greatly simplify secure media handling.**  
+Direct browser→Spaces uploads reduced API load, bandwidth usage, and architectural complexity.
 
-#### 3. **Docker Compose Volume Mounts Can Hide Node Modules**
+**5. State machines improve workflow reliability.**  
+Modeling the animal lifecycle (Draft → Published → Adopted) enforced valid transitions and clarified business logic.
 
-- **Learning:** A bind mount like `./api/src:/app/src` can overwrite `/app/node_modules` if not carefully scoped, causing runtime errors (ERR_MODULE_NOT_FOUND).
-- **Application:** We initially struggled with missing `multer` in the API container until discovering the overly broad volume mount.
-- **Takeaway:** Use read-only mounts and understand Docker layer caching; prefer `COPY` over bind mounts in production.
-
-#### 4. **Presigned URLs Simplify Secure Media Access**
-
-- **Learning:** Generating short-lived presigned URLs for S3/DO Spaces eliminates the need to proxy media through the API, reducing bandwidth and simplifying architecture.
-- **Application:** We integrated presigned URLs for animal photo uploads, allowing direct browser-to-Spaces uploads.
-- **Takeaway:** Leverage cloud provider capabilities (presigned URLs, webhooks) rather than building custom authentication layers.
-
-#### 5. **State Machines Clarify Business Logic**
-
-- **Learning:** Modeling the animal adoption process as a state machine (Draft → Published → Adopted) makes business rules explicit and prevents invalid transitions.
-- **Application:** We enforced state transitions in the backend with validation middleware, preventing data inconsistencies.
-- **Takeaway:** Use state diagrams during design; implement state validation in the database or ORM constraints.
+---
 
 ### 10.2 Project Management Lessons
 
-#### 1. **Clear Role Division Reduces Integration Conflicts**
+**1. Clear role ownership reduces integration problems.**  
+Assigning DevOps, Backend, and Frontend responsibilities enabled efficient parallel development and minimized merge conflicts.
 
-- **Learning:** Assigning Jiayan to DevOps, Yiming to Backend, and Jinhua to Frontend minimized merge conflicts and allowed parallel development.
-- **Application:** We maintained separate feature branches and used PRs for code review, catching issues early.
-- **Takeaway:** Establish clear ownership; use version control discipline.
+**2. Early documentation prevents rework.**  
+Maintaining API specs, environment variable tables, and deployment guides improved onboarding and reduced debugging time.
 
-#### 2. **Documentation Early Prevents Rework**
+**3. Iterative development is superior to big-bang delivery.**  
+Delivering features in sequence (animals → applications → interviews → contracts) allowed early feedback and smoother integration.
 
-- **Learning:** Documenting API contracts (OpenAPI spec) and database schema upfront saves debugging time later.
-- **Application:** We created detailed environment variable docs and deployment guides, making onboarding smooth.
-- **Takeaway:** Invest in documentation; it pays dividends during integration and deployment.
-
-#### 3. **Iterative Feature Delivery is More Effective Than Big Bang**
-
-- **Learning:** Building features incrementally (animal upload → publish → application → interview → contract) allowed early feedback and scope adjustments.
-- **Application:** We deployed to staging early and frequently, catching bugs before production.
-- **Takeaway:** Plan sprints around deliverable features; avoid monolithic development.
+---
 
 ### 10.3 Real-World Insights
 
-#### 1. **Volunteer Organizations Have Real, Solvable Problems**
+**1. Nonprofits often struggle with fragmented workflows.**  
+Building for a real rescue organization revealed how much manual effort can be reduced through centralized digital systems.
 
-- **Insight:** SFP's fragmented adoption process is not unique; many nonprofits face similar operational challenges.
-- **Impact:** Building a purpose-built system for a real organization provided authentic motivation and concrete use cases.
-- **Reflection:** This project demonstrates the value of technology in improving nonprofit operations.
+**2. Security and privacy must be intentional from the start.**  
+Working with PII required strict RBAC, audit logging, and careful API exposure; security cannot be bolted on later.
 
-#### 2. **Security and Privacy Cannot Be Afterthoughts**
+**3. Cloud-native architecture requires a mindset shift.**  
+Designing with containers, orchestration, and declarative infrastructure improved reliability, deployment consistency, and scalability.
 
-- **Insight:** Handling PII (names, addresses, phone numbers) requires deliberate design choices: encryption, RBAC, audit logs.
-- **Application:** We implemented role-based visibility, ensuring applicants see only their own data and coordinators never see SSNs.
-- **Reflection:** Privacy is a feature, not a compliance checkbox.
-
-#### 3. **Cloud Native Architecture Requires Mindset Shift**
-
-- **Insight:** Thinking in terms of containers, orchestration, and declarative infrastructure is different from traditional monolithic app development.
-- **Application:** We embraced immutable infrastructure (containers), declarative deployment (Kubernetes manifests), and stateless services.
-- **Reflection:** The shift enables faster iteration, better reliability, and easier scaling.
+---
 
 ### 10.4 Future Enhancements
 
-1. **E-Signature Automation:** Integrate DocuSign or SignNow API for automated contract signing.
-2. **Mobile App:** Native iOS/Android app using React Native for adopters and volunteers.
-3. **Advanced Search:** Elasticsearch integration for full-text animal search and filtering.
-4. **Multi-Language Support:** i18n for Spanish, Mandarin, and other languages.
-5. **Payment Integration:** Online adoption fee payments via Stripe.
+- Automated e-signature integration (DocuSign, SignNow)  
+- Native mobile app for fosters and adopters  
+- Advanced search (Elasticsearch)  
+- Multi-language support (e.g., Spanish, Mandarin)  
+- Online adoption fee payments (Stripe)
+
+---
 
 ### 10.5 Concluding Remarks
 
-The **SFP Animal Management System** demonstrates a comprehensive, real-world application of cloud computing principles. By building a stateful, containerized, cloud-native platform for an actual nonprofit, we achieved:
+The **SFP Animal Management System** demonstrates practical cloud-native engineering: containerization, orchestration, persistent state management, secure workflows, and automated communication. Beyond meeting course requirements, it meaningfully improves the operational workflow of a real nonprofit organization. This project provided hands-on experience with designing scalable cloud systems and showed how thoughtful engineering can streamline real-world adoption processes.
 
-✅ **Technical Excellence:**
-
-- Full-stack web application with authentication, RBAC, and complex workflows
-- Production-grade Kubernetes orchestration with zero-downtime deployments
-- Secure data handling with encryption, presigned URLs, and audit logs
-
-✅ **Operational Impact:**
-
-- Reduced SFP's manual coordination burden; animals reach adoption listings faster
-- Centralized volunteer and applicant communication; improved transparency
-- Provided a replicable template for other animal rescue organizations
-
-✅ **Educational Value:**
-
-- Deep understanding of containerization, orchestration, and cloud infrastructure
-- Real-world experience with DevOps practices: CI/CD, monitoring, deployments
-- Appreciation for how technology solves authentic organizational problems
 
 ### Final Thoughts
 
