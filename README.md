@@ -1,21 +1,25 @@
 # 🐾 SFP Animal Management System — Final Report
 
 **Course:** Cloud Computing (ECE 1779/CSC 2233)  
-**Project Name:** Save Fur Pets (SFP) Animal Management System  
-**Submission Date:** December 3, 2025
+**Project Name:** Save Fur Pets (SFP) Animal Management System
 
 ---
 
 ## Video Demo
-Video URL: https://youtu.be/kvB1B6O-kOc 
+
+Video URL: https://youtu.be/kvB1B6O-kOc
+
+## Deployment URL
+
+Deployed on: http://129.212.134.118
 
 ## 1. Team Information
 
-| Name       | Student Number | Email                         | Role                    |
-| ---------- | -------------- | ----------------------------- | ----------------------- |
+| Name       | Student Number | Email                           | Role                    |
+| ---------- | -------------- | ------------------------------- | ----------------------- |
 | Yiming Liu | 1011337402     | yimingpaul.liu@mail.utoronto.ca | Frontend & UI Owner     |
-| Jinhua Yan | 1012858686     | jinhua.yan@mail.utoronto.ca   | Backend & Auth Owner    |
-| Jiayan Xu  | 1012882436     | rayjiayan.xu@mail.utoronto.ca | Platform & DevOps Owner |
+| Jinhua Yan | 1012858686     | jinhua.yan@mail.utoronto.ca     | Backend & Auth Owner    |
+| Jiayan Xu  | 1012882436     | rayjiayan.xu@mail.utoronto.ca   | Platform & DevOps Owner |
 
 ---
 
@@ -805,10 +809,10 @@ Designing with containers, orchestration, and declarative infrastructure improve
 
 ### 10.4 Future Enhancements
 
-- Automated e-signature integration (DocuSign, SignNow)  
-- Native mobile app for fosters and adopters  
-- Advanced search (Elasticsearch)  
-- Multi-language support (e.g., Spanish, Mandarin)  
+- Automated e-signature integration (DocuSign, SignNow)
+- Native mobile app for fosters and adopters
+- Advanced search (Elasticsearch)
+- Multi-language support (e.g., Spanish, Mandarin)
 - Online adoption fee payments (Stripe)
 
 ---
@@ -816,7 +820,6 @@ Designing with containers, orchestration, and declarative infrastructure improve
 ### 10.5 Concluding Remarks
 
 The **SFP Animal Management System** demonstrates practical cloud-native engineering: containerization, orchestration, persistent state management, secure workflows, and automated communication. Beyond meeting course requirements, it meaningfully improves the operational workflow of a real nonprofit organization. This project provided hands-on experience with designing scalable cloud systems and showed how thoughtful engineering can streamline real-world adoption processes.
-
 
 ### Final Thoughts
 
